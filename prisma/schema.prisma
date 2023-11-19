@@ -11,11 +11,25 @@ datasource db {
 }
 
 model User {
-  id    Int     @default(autoincrement()) @id
-  email String  @unique
-  name  String?
-  password String
-  active Boolean @default(true)
-  createAt DateTime @default(now())
-  updateAt DateTime? @updatedAt
+  id            Int    @id @default(autoincrement())
+  email         String    @unique
+  phone         String?
+  name          String
+  password      String
+  roleId        Int
+  roleAccess    Role      @relation(fields: [roleId], references: [id])
+  online        Boolean   @default(false)
+  member        Boolean   @default(false)
+  active        Boolean   @default(true)
+  memberStartAt DateTime?
+  memberEndAt   DateTime?
+  joinDate      DateTime  @default(now())
+  createAt      DateTime  @default(now())
+  updateAt      DateTime? @updatedAt
+}
+
+model Role {
+  id    Int @id @default(autoincrement())
+  name  String @unique
+  users User[]
 }
