@@ -29,8 +29,11 @@ export class UserService {
     return 'This action adds a new user';
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll() {
+    const data = await this.prisma.user.findMany({
+      include: { roleAccess: true },
+    })
+    return data;
   }
 
   findOne(id: number) {

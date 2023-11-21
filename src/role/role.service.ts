@@ -21,8 +21,9 @@ export class RoleService {
     return { message: responseMessage, data };
   }
 
-  findAll() {
-    return `This action returns all role`;
+  async findAll() {
+    const data = await this.prisma.role.findMany()
+    return data;
   }
 
   findOne(id: number) {
