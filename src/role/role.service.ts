@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -26,8 +26,16 @@ export class RoleService {
     return data;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} role`;
+  async findOne(id: number) {
+    const data = await this.prisma.role.findUnique({
+      where: {
+        id
+      }
+    })
+    if (data) {
+      return data;
+    }
+    throw new NotFoundException("Data not found")
   }
   
   async findByName(name: string) {
@@ -40,8 +48,22 @@ export class RoleService {
     return role
   }
 
-  update(id: number, updateRoleDto: UpdateRoleDto) {
-    return `This action updates a #${id} role`;
+  async update(id: number, updateRoleDto: UpdateRoleDto) {
+    const checkdata = await this.findOne(id)
+    if (!checkdata) {
+      return checkdata
+    }
+    try {
+      const role = await this.prisma.role.update({
+        where: { id },
+        data: updateRoleDto
+      })
+      const responseMessage = 'Data update successful';
+      return { message: responseMessage, role };
+    } catch (err) {
+      console.error(err);
+      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   remove(id: number) {
