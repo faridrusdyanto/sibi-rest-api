@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -6,7 +6,7 @@ import { hash } from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async register(dto: CreateUserDto) {
     const checkEmail = await this.findByEmail(dto.email)
@@ -36,8 +36,17 @@ export class UserService {
     return data;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    // return `This action returns a #${id} user`;
+    const data = await this.prisma.user.findUnique({
+      where: {
+        id
+      }
+    })
+    if (data) {
+      return data;
+    }
+    throw new NotFoundException("User data not found")
   }
 
   async findByEmail(email: string) {
@@ -49,8 +58,23 @@ export class UserService {
     return data;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const checkdata = await this.findOne(id)
+    if (!checkdata) {
+      return checkdata
+    }
+    try {
+      const user = await this.prisma.user.update({
+        where: { id },
+        data: updateUserDto
+      })
+      const { password, ...userWithoutPassword } = user
+      const responseMessage = 'Data update successful';
+      return { message: responseMessage, data: userWithoutPassword };
+    } catch (err) {
+      console.error(err);
+      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   remove(id: number) {
