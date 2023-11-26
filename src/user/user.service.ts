@@ -46,7 +46,7 @@ export class UserService {
     if (data) {
       return data;
     }
-    throw new NotFoundException("User data not found")
+    throw new NotFoundException("Data not found")
   }
 
   async findByEmail(email: string) {
@@ -77,7 +77,12 @@ export class UserService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number) {
+    const checkdata = await this.findOne(id)
+    if (!checkdata) {
+      return checkdata
+    }
+    await this.prisma.user.delete({ where: { id } })
+    return { message: "Delete data successfully "}
   }
 }
