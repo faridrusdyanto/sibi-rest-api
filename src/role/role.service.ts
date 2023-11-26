@@ -66,7 +66,12 @@ export class RoleService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} role`;
+  async remove(id: number) {
+    const checkdata = await this.findOne(id)
+    if (!checkdata) {
+      return checkdata
+    }
+    await this.prisma.role.delete({ where: { id } })
+    return { message: "Delete data successfully "}
   }
 }
